@@ -16,8 +16,8 @@ export default function HomePage() {
             <span className="text-xl font-bold text-gray-900">VietRAG</span>
           </div>
           <div className="flex items-center gap-4">
-<Link href="/chat" className="btn-primary flex items-center gap-2">
-              Bat dau <ArrowRight className="w-4 h-4" />
+<Link href="/login" className="btn-primary flex items-center gap-2">
+              Bắt đầu <ArrowRight className="w-4 h-4" />
             </Link>
             <Link href="/admin" className="text-sm text-gray-600 hover:text-primary-600 flex items-center gap-1">
               <LayoutDashboard className="w-4 h-4" /> Admin

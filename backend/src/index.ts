@@ -9,6 +9,9 @@ import searchRouter from './routes/search.js';
 import conversationsRouter from './routes/conversations.js';
 import pptRouter from './routes/ppt.js';
 import excelRouter from './routes/excel.js';
+import authRouter from './routes/auth.js';
+import templatesRouter from './routes/templates.js';
+import generateRouter from './routes/generate.js';
 
 dotenv.config();
 
@@ -48,6 +51,9 @@ app.use('/api/search', searchRouter);
 app.use('/api/conversations', conversationsRouter);
 app.use('/api/ppt', pptRouter);
 app.use('/api/excel', excelRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/templates', templatesRouter);
+app.use('/api/generate', generateRouter);
 
 // 404 handler
 app.use((req, res) => {
