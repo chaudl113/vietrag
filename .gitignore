@@ -35,3 +35,9 @@ build/
 # TypeScript
 *.tsbuildinfo
 backend/outputs/
+
+# Database
+backend/data/
+
+# Generated files
+outputs/
