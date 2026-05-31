@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { MessageSquare, Upload, Search, Shield, ArrowRight, Zap, Globe, Lock, Presentation } from 'lucide-react'
+import { MessageSquare, Upload, Search, Shield, ArrowRight, Zap, Globe, Lock, Presentation, LayoutDashboard } from 'lucide-react'
 
 export default function HomePage() {
   return (
@@ -18,6 +18,9 @@ export default function HomePage() {
           <div className="flex items-center gap-4">
 <Link href="/chat" className="btn-primary flex items-center gap-2">
               Bat dau <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link href="/admin" className="text-sm text-gray-600 hover:text-primary-600 flex items-center gap-1">
+              <LayoutDashboard className="w-4 h-4" /> Admin
             </Link>
             <Link href="/ppt" className="text-sm text-gray-600 hover:text-primary-600 flex items-center gap-1">
               <Presentation className="w-4 h-4" /> Tao PPT
