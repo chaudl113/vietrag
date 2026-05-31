@@ -70,3 +70,41 @@ npm start
 
 ### Health
 - `GET /health` - Health check
+
+## PPT Generation API
+
+### POST /api/ppt/generate
+Upload document -> generate PPTX.
+
+```bash
+curl -X POST http://localhost:3001/api/ppt/generate \
+  -F "file=@document.pdf" \
+  -F "theme=professional" \
+  -F "language=vi"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "file_path": "/tmp/vietrag/ppt/document_abc123.pptx",
+  "file_name": "document.pptx",
+  "file_size": 30968,
+  "slide_count": 10,
+  "title": "Document Title",
+  "theme": "professional",
+  "downloadUrl": "/api/ppt/download/document_abc123.pptx"
+}
+```
+
+### POST /api/ppt/from-text
+Generate PPT from raw text.
+
+```bash
+curl -X POST http://localhost:3001/api/ppt/from-text \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Your content here...", "title": "My Presentation", "theme": "dark"}'
+```
+
+### GET /api/ppt/download/:filename
+Download generated PPTX file.
