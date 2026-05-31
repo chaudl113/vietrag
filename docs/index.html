@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VietRAG - AI Chatbot cho Doanh Nghiệp Việt Nam</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        .hero {
+            background: linear-gradient(135deg, #DA251D 0%, #FF6B35 100%);
+            color: white;
+            padding: 100px 20px;
+            text-align: center;
+        }
+        
+        .hero h1 { font-size: 3.5rem; margin-bottom: 20px; }
+        .hero p { font-size: 1.3rem; margin-bottom: 30px; opacity: 0.9; }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #FFCD00;
+            color: #333;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.3s;
+        }
+        
+        .btn:hover { transform: scale(1.05); }
+        
+        .features {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            color: #333;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .feature-card h3 { 
+            font-size: 1.5rem; 
+            margin: 20px 0 15px; 
+            color: #DA251D; 
+        }
+        
+        .feature-icon { font-size: 3rem; }
+        
+        .pricing {
+            background: #f8f9fa;
+            padding: 80px 20px;
+        }
+        
+        .pricing h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            color: #333;
+        }
+        
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .price-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .price-card h3 { 
+            font-size: 1.5rem; 
+            color: #DA251D; 
+            margin-bottom: 20px; 
+        }
+        
+        .price { 
+            font-size: 2.5rem; 
+            font-weight: bold; 
+            color: #333; 
+            margin-bottom: 20px; 
+        }
+        
+        .price-card ul { 
+            list-style: none; 
+            text-align: left; 
+            margin-bottom: 30px; 
+        }
+        
+        .price-card li { 
+            padding: 10px 0; 
+            border-bottom: 1px solid #eee; 
+        }
+        
+        .cta {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #DA251D 0%, #FF6B35 100%);
+            color: white;
+        }
+        
+        .cta h2 { 
+            font-size: 2.5rem; 
+            margin-bottom: 20px; 
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px;
+            background: #333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <h1>🇻🇳 VietRAG</h1>
+        <p>Nền tảng AI Chatbot cho Doanh Nghiệp Việt Nam</p>
+        <p>Upload tài liệu → AI đọc hiểu → Chatbot trả lời theo dữ liệu riêng</p>
+        <a href="#pricing" class="btn">Bắt đầu ngay</a>
+    </section>
+    
+    <section class="features">
+        <h2>Tính năng nổi bật</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📄</div>
+                <h3>Upload tài liệu</h3>
+                <p>Hỗ trợ PDF, DOCX, TXT, hình ảnh. OCR tiếng Việt chính xác.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>AI Chatbot</h3>
+                <p>Trả lời dựa trên dữ liệu riêng. Không hallucination.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Bảo mật</h3>
+                <p>Self-hosted option. Data không ra ngoài server của bạn.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🇻🇳</div>
+                <h3>Tiếng Việt</h3>
+                <p>Giao diện tiếng Việt. Tối ưu cho ngôn ngữ tiếng Việt.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔌</div>
+                <h3>API Compatible</h3>
+                <p>Tương thích OpenAI API. Dễ dàng tích hợp hệ thống.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Giá Việt Nam</h3>
+                <p>Giá hợp lý cho SME VN. Không minimum commit.</p>
+            </div>
+        </div>
+    </section>
+    
+    <section class="pricing" id="pricing">
+        <h2>Bảng giá</h2>
+        <div class="price-grid">
+            <div class="price-card">
+                <h3>Free</h3>
+                <div class="price">0đ</div>
+                <ul>
+                    <li>100MB storage</li>
+                    <li>1,000 queries/tháng</li>
+                    <li>1 chatbot</li>
+                    <li>Community support</li>
+                </ul>
+                <a href="#" class="btn">Đăng ký</a>
+            </div>
+            <div class="price-card">
+                <h3>Starter</h3>
+                <div class="price">199k/tháng</div>
+                <ul>
+                    <li>1GB storage</li>
+                    <li>10,000 queries/tháng</li>
+                    <li>3 chatbots</li>
+                    <li>Email support</li>
+                </ul>
+                <a href="#" class="btn">Đăng ký</a>
+            </div>
+            <div class="price-card">
+                <h3>Pro</h3>
+                <div class="price">499k/tháng</div>
+                <ul>
+                    <li>10GB storage</li>
+                    <li>100,000 queries/tháng</li>
+                    <li>10 chatbots</li>
+                    <li>Priority support</li>
+                </ul>
+                <a href="#" class="btn">Đăng ký</a>
+            </div>
+            <div class="price-card">
+                <h3>Enterprise</h3>
+                <div class="price">Liên hệ</div>
+                <ul>
+                    <li>Unlimited storage</li>
+                    <li>Unlimited queries</li>
+                    <li>Unlimited chatbots</li>
+                    <li>24/7 support + SLA</li>
+                </ul>
+                <a href="#" class="btn">Liên hệ</a>
+            </div>
+        </div>
+    </section>
+    
+    <section class="cta">
+        <h2>Sẵn sàng bắt đầu?</h2>
+        <p>Dùng thử miễn phí ngay hôm nay</p>
+        <br>
+        <a href="#" class="btn">Dùng thử miễn phí</a>
+    </section>
+    
+    <footer>
+        <p>© 2026 VietRAG. All rights reserved.</p>
+        <p>Forked from RAGFlow (81.5k⭐) - Apache 2.0 License</p>
+    </footer>
+</body>
+</html>

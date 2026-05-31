@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # VietRAG Backend + Frontend
+  vietrag:
+    image: infiniflow/ragflow:v0.25.6
+    container_name: vietrag-app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - APP_NAME=VietRAG
+      - ES_HOSTS=http://elasticsearch:9200
+      - REDIS_HOST=redis:6379
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=vietrag_password
+      - MYSQL_DBNAME=vietrag
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=vietrag_admin
+      - MINIO_SECRET_KEY=vietrag_secret_key
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    volumes:
+      - vietrag-data:/data
+    restart: unless-stopped
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    container_name: vietrag-es
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: vietrag-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: vietrag-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=vietrag_password
+      - MYSQL_DATABASE=vietrag
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # MinIO (Object Storage)
+  minio:
+    image: minio/minio:latest
+    container_name: vietrag-minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=vietrag_admin
+      - MINIO_ROOT_PASSWORD=vietrag_secret_key
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    restart: unless-stopped
+
+volumes:
+  vietrag-data:
+  es-data:
+  mysql-data:
+  minio-data:
