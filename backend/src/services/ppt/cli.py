@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI bridge for PPT generation — called by Express backend via subprocess."""
+"""CLI bridge for PPT generation - called by Express backend via subprocess."""
 
 import argparse
 import asyncio
@@ -7,8 +7,11 @@ import json
 import sys
 from pathlib import Path
 
-# Add parent to path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
+# Fix import path: cli.py is at backend/src/services/ppt/cli.py
+# Need to add backend/src to sys.path so we can import services.ppt.*
+src_dir = str(Path(__file__).resolve().parent.parent.parent)
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
 from services.ppt.generator import generate_ppt_from_file
 

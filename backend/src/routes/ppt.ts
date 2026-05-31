@@ -31,8 +31,9 @@ router.post('/generate', upload.single('file'), async (req: Request, res: Respon
     const language = req.body.language || 'vi'
     const { execSync } = await import('child_process')
     const cli = path.join(process.cwd(), 'src', 'services', 'ppt', 'cli.py')
+    const pythonBin = path.join(process.cwd(), '.venv', 'bin', 'python3')
     const result = execSync(
-      `python3 "${cli}" generate --file "${req.file.path}" --theme "${theme}" --language "${language}" --output-dir "${outputDir}"`,
+      `"${pythonBin}" "${cli}" generate --file "${req.file.path}" --theme "${theme}" --language "${language}" --output-dir "${outputDir}"`,
       { encoding: 'utf-8', timeout: 120000 }
     )
     const parsed = JSON.parse(result.trim())
@@ -51,8 +52,9 @@ router.post('/from-text', async (req: Request, res: Response) => {
     fs.writeFileSync(tempFile, text, 'utf-8')
     const { execSync } = await import('child_process')
     const cli = path.join(process.cwd(), 'src', 'services', 'ppt', 'cli.py')
+    const pythonBin = path.join(process.cwd(), '.venv', 'bin', 'python3')
     const result = execSync(
-      `python3 "${cli}" generate --file "${tempFile}" --title "${title || ''}" --theme "${theme}" --language "${language}" --output-dir "${outputDir}"`,
+      `"${pythonBin}" "${cli}" generate --file "${tempFile}" --title "${title || ''}" --theme "${theme}" --language "${language}" --output-dir "${outputDir}"`,
       { encoding: 'utf-8', timeout: 120000 }
     )
     const parsed = JSON.parse(result.trim())

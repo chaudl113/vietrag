@@ -58,14 +58,19 @@ app.use(errorHandler);
 // Start server
 async function start() {
   try {
-    // Initialize Elasticsearch indices
-    await initializeIndices();
-    console.log('Elasticsearch indices initialized');
+    // Initialize Elasticsearch indices (optional - skip if ES not available)
+    try {
+      await initializeIndices();
+      console.log('Elasticsearch indices initialized');
+    } catch (esErr) {
+      console.warn('Elasticsearch not available, skipping (chat/search features disabled)');
+    }
 
     app.listen(PORT, () => {
       console.log(`VietRAG backend server running on port ${PORT}`);
       console.log(`Health check: http://localhost:${PORT}/health`);
       console.log(`API base: http://localhost:${PORT}/api`);
+      console.log(`PPT generation: http://localhost:${PORT}/api/ppt/generate`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
