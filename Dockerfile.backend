@@ -1,0 +1,45 @@
+# ==================== BUILD STAGE ====================
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install dependencies (including devDependencies for build)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build TypeScript
+RUN npm run build
+
+# ==================== PRODUCTION STAGE ====================
+FROM node:18-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 appuser
+
+# Copy package files and install production dependencies only
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy built files from builder
+COPY --from=builder /app/dist ./dist
+
+# Set ownership
+RUN chown -R appuser:nodejs /app
+
+USER appuser
+
+EXPOSE 3001
+
+ENV PORT=3001
+
+CMD ["node", "dist/index.js"]

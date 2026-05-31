@@ -30,3 +30,7 @@ logs/
 # Build
 dist/
 build/
+.next/
+
+# TypeScript
+*.tsbuildinfo

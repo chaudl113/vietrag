@@ -1,83 +1,10 @@
+# docker-compose.dev.yml
+# Chỉ khởi động hạ tầng (Elasticsearch, MySQL, Redis, MinIO)
+# Frontend và Backend chạy local để debug nhanh
+
 version: '3.8'
 
 services:
-  # ==================== FRONTEND ====================
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: ../Dockerfile.frontend
-    container_name: vietrag-frontend
-    ports:
-      - "${FRONTEND_PORT:-3000}:3000"
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:${BACKEND_PORT:-3001}/api/v1
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-    networks:
-      - vietrag-network
-    restart: unless-stopped
-
-  # ==================== BACKEND ====================
-  backend:
-    build:
-      context: ./backend
-      dockerfile: ../Dockerfile.backend
-    container_name: vietrag-backend
-    ports:
-      - "${BACKEND_PORT:-3001}:3001"
-    environment:
-      - NODE_ENV=production
-      - PORT=${BACKEND_PORT:-3001}
-      # MySQL
-      - MYSQL_HOST=mysql
-      - MYSQL_PORT=3306
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD:-vietrag_password}
-      - MYSQL_DATABASE=${MYSQL_DATABASE:-vietrag}
-      # Elasticsearch
-      - ES_HOST=elasticsearch
-      - ES_PORT=9200
-      # Redis
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      # MinIO
-      - MINIO_ENDPOINT=minio
-      - MINIO_PORT=9000
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-vietrag_admin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-vietrag_secret_key}
-      - MINIO_BUCKET=${MINIO_BUCKET:-vietrag-docs}
-      # OpenAI
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
-      # JWT
-      - JWT_SECRET=${JWT_SECRET:-change_me_in_production}
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/v1/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    networks:
-      - vietrag-network
-    restart: unless-stopped
-
   # ==================== ELASTICSEARCH ====================
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
