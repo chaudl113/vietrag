@@ -7,6 +7,7 @@ import chatRouter from './routes/chat.js';
 import documentsRouter from './routes/documents.js';
 import searchRouter from './routes/search.js';
 import conversationsRouter from './routes/conversations.js';
+import pptRouter from './routes/ppt.js';
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.use('/api/chat', chatRouter);
 app.use('/api/documents', documentsRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/conversations', conversationsRouter);
+app.use('/api/ppt', pptRouter);
 
 // 404 handler
 app.use((req, res) => {

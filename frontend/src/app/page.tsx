@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { MessageSquare, Upload, Search, Shield, ArrowRight, Zap, Globe, Lock } from 'lucide-react'
+import { MessageSquare, Upload, Search, Shield, ArrowRight, Zap, Globe, Lock, Presentation } from 'lucide-react'
 
 export default function HomePage() {
   return (
@@ -16,8 +16,11 @@ export default function HomePage() {
             <span className="text-xl font-bold text-gray-900">VietRAG</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/chat" className="btn-primary flex items-center gap-2">
-              Bắt đầu <ArrowRight className="w-4 h-4" />
+<Link href="/chat" className="btn-primary flex items-center gap-2">
+              Bat dau <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link href="/ppt" className="text-sm text-gray-600 hover:text-primary-600 flex items-center gap-1">
+              <Presentation className="w-4 h-4" /> Tao PPT
             </Link>
           </div>
         </div>
@@ -53,7 +56,8 @@ export default function HomePage() {
             { icon: MessageSquare, title: 'Hỏi đáp tiếng Việt', desc: 'Hiểu ngữ cảnh tiếng Việt tự nhiên, trả lời chính xác' },
             { icon: Search, title: 'Tìm kiếm ngữ nghĩa', desc: 'Tìm kiếm theo ý nghĩa, không chỉ từ khóa' },
             { icon: Upload, title: 'Upload tài liệu', desc: 'Hỗ trợ PDF, DOCX, TXT. Xử lý tự động' },
-            { icon: Shield, title: 'Bảo mật dữ liệu', desc: 'Dữ liệu được mã hóa và lưu trữ an toàn' },
+{ icon: Shield, title: 'Bao mat du lieu', desc: 'Du lieu duoc ma hoa va luu tru an toan' },
+            { icon: Presentation, title: 'Tao PPT tu tai lieu', desc: 'AI tao PowerPoint tu PDF, DOCX voi slide chinh sua duoc' },
           ].map(({ icon: Icon, title, desc }) => (
             <div key={title} className="card text-center">
               <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-4">
