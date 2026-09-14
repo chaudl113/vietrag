@@ -67,7 +67,12 @@ Trang frontend (`frontend/src/app/`): `/`, `/login`, `/chat`, `/search`, `/uploa
 
 ## 🚀 Chạy local
 
-Yêu cầu: Node.js (Dockerfile dùng `node:18`), Python 3, Docker (chỉ để chạy Elasticsearch), OpenAI API key.
+Yêu cầu: Node.js **22.13.0 trở lên** (dòng 22 từ 22.13, hoặc 24–26; không dùng 23), Python 3, Docker (chỉ để chạy
+Elasticsearch), OpenAI API key.
+
+Vì sao là 22.13: `eslint` 10 khai `engines.node` là `^20.19.0 || ^22.13.0 || >=24`; `better-sqlite3` 12 khai
+`20.x || 22.x … 26.x`; script `npm test` truyền glob `"test/**/*.test.ts"` cho `node --test`, mà Node chỉ hỗ trợ
+glob ở đây từ bản 21, nên dòng 20 không chạy được test.
 
 ### 1. Elasticsearch
 
@@ -264,6 +269,7 @@ Kiểm tra tại commit hiện tại của nhánh này.
 
 **Docker full stack**
 - `Dockerfile.backend` chạy `npm run build`, hiện thất bại vì lỗi `tsc` ở trên.
+- `Dockerfile.backend` dùng `node:18-alpine`, thấp hơn yêu cầu Node 22.13.0 của backend (xem mục "Chạy local").
 - Image backend không có Python, `.venv` hay các file `src/services/**/*.py`, nên route PPT/Excel không chạy trong container.
 - Rewrite `/api/*` → `http://localhost:3001` trong `frontend/next.config.js` trỏ về chính container frontend, không tới backend.
 - `Dockerfile.frontend` copy thư mục `public/` nhưng `frontend/` không có thư mục này.
