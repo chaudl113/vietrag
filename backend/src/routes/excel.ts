@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import path from 'path'
 import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
+import { resolveDownloadPath } from '../utils/downloadPath.js'
 
 const router = Router()
 const outputDir = path.join(process.cwd(), 'outputs', 'excel')
@@ -10,26 +11,33 @@ fs.mkdirSync(outputDir, { recursive: true })
 const pythonBin = path.join(process.cwd(), '.venv', 'bin', 'python3')
 const cliPath = path.join(process.cwd(), 'src', 'services', 'excel', 'cli.py')
 
+// ids must match TEMPLATES in services/excel/excel_builder.py; also the allowlist for POST /generate.
+const TEMPLATES = [
+  { id: 'invoice', name: 'Hoa don', desc: 'Hoa don ban hang voi cong thuc tinh tong' },
+  { id: 'budget', name: 'Ngan sach', desc: 'Bao cao chi phi theo quy voi bieu do' },
+  { id: 'employee', name: 'Nhan vien', desc: 'Danh sach nhan vien' },
+  { id: 'inventory', name: 'Ton kho', desc: 'Quan ly nhap xuat ton' },
+]
+
 router.get('/templates', (_req: Request, res: Response) => {
-  return res.json({
-    templates: [
-      { id: 'invoice', name: 'Hoa don', desc: 'Hoa don ban hang voi cong thuc tinh tong' },
-      { id: 'budget', name: 'Ngan sach', desc: 'Bao cao chi phi theo quy voi bieu do' },
-      { id: 'employee', name: 'Nhan vien', desc: 'Danh sach nhan vien' },
-      { id: 'inventory', name: 'Ton kho', desc: 'Quan ly nhap xuat ton' },
-    ]
-  })
+  return res.json({ templates: TEMPLATES })
 })
+
+// Python is spawned without a shell, one argv entry per value, so no input is shell-parsed.
 
 router.post('/generate', async (req: Request, res: Response) => {
   try {
     const { template, title } = req.body
     if (!template) return res.status(400).json({ error: 'Template required' })
+    if (!TEMPLATES.some((t) => t.id === template)) {
+      return res.status(400).json({ error: `Invalid template. Allowed: ${TEMPLATES.map((t) => t.id).join(', ')}` })
+    }
 
     const outFile = path.join(outputDir, `${template}_${uuidv4().replace(/-/g, "").slice(0, 8)}.xlsx`)
-    const { execSync } = await import('child_process')
-    const result = execSync(
-      `"${pythonBin}" "${cliPath}" template --name "${template}" --output "${outFile}"`,
+    const { execFileSync } = await import('child_process')
+    const result = execFileSync(
+      pythonBin,
+      [cliPath, 'template', `--name=${template}`, `--output=${outFile}`],
       { encoding: 'utf-8', timeout: 30000 }
     )
     const parsed = JSON.parse(result.trim())
@@ -48,9 +56,10 @@ router.post('/from-data', async (req: Request, res: Response) => {
     fs.writeFileSync(tempFile, JSON.stringify({ title, columns, data, chartType }), 'utf-8')
     const outFile = tempFile.replace('.json', '.xlsx')
 
-    const { execSync } = await import('child_process')
-    const result = execSync(
-      `"${pythonBin}" "${cliPath}" custom --input "${tempFile}" --output "${outFile}"`,
+    const { execFileSync } = await import('child_process')
+    const result = execFileSync(
+      pythonBin,
+      [cliPath, 'custom', `--input=${tempFile}`, `--output=${outFile}`],
       { encoding: 'utf-8', timeout: 30000 }
     )
     const parsed = JSON.parse(result.trim())
@@ -62,7 +71,8 @@ router.post('/from-data', async (req: Request, res: Response) => {
 })
 
 router.get('/download/:filename', (req: Request, res: Response) => {
-  const filePath = path.join(outputDir, req.params.filename)
+  const filePath = resolveDownloadPath(outputDir, req.params.filename)
+  if (!filePath) return res.status(400).json({ error: 'Invalid filename' })
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' })
   setTimeout(() => { try { fs.unlinkSync(filePath) } catch {} }, 3600000)
   return res.download(filePath)

@@ -1,6 +1,8 @@
+// Must stay the first import: ES modules evaluate all imports before this file's body,
+// and middleware/auth.ts reads JWT_SECRET at import time.
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { initializeIndices } from './services/elasticsearch.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import chatRouter from './routes/chat.js';
@@ -12,8 +14,6 @@ import excelRouter from './routes/excel.js';
 import authRouter from './routes/auth.js';
 import templatesRouter from './routes/templates.js';
 import generateRouter from './routes/generate.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3001', 10);

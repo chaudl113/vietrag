@@ -3,6 +3,7 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
+import { resolveDownloadPath } from '../utils/downloadPath.js'
 
 const router = Router()
 const uploadDir = path.join(process.cwd(), 'uploads', 'ppt')
@@ -24,16 +25,36 @@ const upload = multer({
   },
 })
 
+// Keys of THEMES in services/ppt/pptx_builder.py (unknown names silently fall back to professional there).
+const THEMES = ['professional', 'dark', 'creative', 'minimal']
+// services/ppt/slide_planner.py defaults to 'vi' and only branches on 'en'.
+const LANGUAGES = ['vi', 'en']
+
+function validateOptions(theme: unknown, language: unknown): string | null {
+  if (typeof theme !== 'string' || !THEMES.includes(theme)) return `Invalid theme. Allowed: ${THEMES.join(', ')}`
+  if (typeof language !== 'string' || !LANGUAGES.includes(language)) return `Invalid language. Allowed: ${LANGUAGES.join(', ')}`
+  return null
+}
+
+// Python is spawned without a shell and every value is its own argv entry (`--flag=value`, so a
+// value starting with '-' cannot be read as another flag): quotes, $(), backticks stay literal.
+
 router.post('/generate', upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'Upload a document file' })
     const theme = req.body.theme || 'professional'
     const language = req.body.language || 'vi'
-    const { execSync } = await import('child_process')
+    const invalid = validateOptions(theme, language)
+    if (invalid) {
+      fs.rm(req.file.path, { force: true }, () => {})
+      return res.status(400).json({ error: invalid })
+    }
+    const { execFileSync } = await import('child_process')
     const cli = path.join(process.cwd(), 'src', 'services', 'ppt', 'cli.py')
     const pythonBin = path.join(process.cwd(), '.venv', 'bin', 'python3')
-    const result = execSync(
-      `"${pythonBin}" "${cli}" generate --file "${req.file.path}" --theme "${theme}" --language "${language}" --output-dir "${outputDir}"`,
+    const result = execFileSync(
+      pythonBin,
+      [cli, 'generate', `--file=${req.file.path}`, `--theme=${theme}`, `--language=${language}`, `--output-dir=${outputDir}`],
       { encoding: 'utf-8', timeout: 120000 }
     )
     const parsed = JSON.parse(result.trim())
@@ -48,13 +69,16 @@ router.post('/from-text', async (req: Request, res: Response) => {
   try {
     const { text, title, theme = 'professional', language = 'vi' } = req.body
     if (!text || text.length < 50) return res.status(400).json({ error: 'Content too short' })
+    const invalid = validateOptions(theme, language)
+    if (invalid) return res.status(400).json({ error: invalid })
     const tempFile = path.join(uploadDir, `text_${uuidv4()}.txt`)
     fs.writeFileSync(tempFile, text, 'utf-8')
-    const { execSync } = await import('child_process')
+    const { execFileSync } = await import('child_process')
     const cli = path.join(process.cwd(), 'src', 'services', 'ppt', 'cli.py')
     const pythonBin = path.join(process.cwd(), '.venv', 'bin', 'python3')
-    const result = execSync(
-      `"${pythonBin}" "${cli}" generate --file "${tempFile}" --title "${title || ''}" --theme "${theme}" --language "${language}" --output-dir "${outputDir}"`,
+    const result = execFileSync(
+      pythonBin,
+      [cli, 'generate', `--file=${tempFile}`, `--title=${title || ''}`, `--theme=${theme}`, `--language=${language}`, `--output-dir=${outputDir}`],
       { encoding: 'utf-8', timeout: 120000 }
     )
     const parsed = JSON.parse(result.trim())
@@ -66,7 +90,8 @@ router.post('/from-text', async (req: Request, res: Response) => {
 })
 
 router.get('/download/:filename', (req: Request, res: Response) => {
-  const filePath = path.join(outputDir, req.params.filename)
+  const filePath = resolveDownloadPath(outputDir, req.params.filename)
+  if (!filePath) return res.status(400).json({ error: 'Invalid filename' })
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' })
   setTimeout(() => { try { fs.unlinkSync(filePath) } catch {} }, 3600000)
   return res.download(filePath)
