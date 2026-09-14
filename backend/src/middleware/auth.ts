@@ -33,3 +33,9 @@ export function authMiddleware(req: AuthRequest, res: Response, next: NextFuncti
     return res.status(401).json({ error: 'Token het han, vui long dang nhap lai' })
   }
 }
+
+// Use after authMiddleware. The role comes from the signed token, so it only changes on next login.
+export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Chi admin moi co quyen truy cap' })
+  next()
+}

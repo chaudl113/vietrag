@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import db from '../services/db.js'
-import { generateToken, authMiddleware, AuthRequest } from '../middleware/auth.js'
+import { generateToken, authMiddleware, requireAdmin, AuthRequest } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -66,7 +66,7 @@ router.get('/me', authMiddleware, (req: AuthRequest, res: Response) => {
 })
 
 // GET /api/auth/users (admin only)
-router.get('/users', authMiddleware, (req: AuthRequest, res: Response) => {
+router.get('/users', authMiddleware, requireAdmin, (req: AuthRequest, res: Response) => {
   const users = db.prepare('SELECT id, email, name, role, created_at FROM users').all()
   return res.json({ users })
 })
