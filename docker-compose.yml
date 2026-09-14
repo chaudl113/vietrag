@@ -11,7 +11,8 @@ services:
       - "${FRONTEND_PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:${BACKEND_PORT:-3001}/api/v1
+      # No API URL variable: the frontend calls relative /api/* and frontend/next.config.js
+      # rewrites it to http://localhost:3001 (fixed at build time).
     depends_on:
       backend:
         condition: service_healthy
@@ -35,42 +36,21 @@ services:
       - "${BACKEND_PORT:-3001}:3001"
     environment:
       - NODE_ENV=production
-      - PORT=${BACKEND_PORT:-3001}
-      # MySQL
-      - MYSQL_HOST=mysql
-      - MYSQL_PORT=3306
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD:-vietrag_password}
-      - MYSQL_DATABASE=${MYSQL_DATABASE:-vietrag}
-      # Elasticsearch
-      - ES_HOST=elasticsearch
-      - ES_PORT=9200
-      # Redis
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      # MinIO
-      - MINIO_ENDPOINT=minio
-      - MINIO_PORT=9000
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-vietrag_admin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-vietrag_secret_key}
-      - MINIO_BUCKET=${MINIO_BUCKET:-vietrag-docs}
+      # Fixed: the port mapping and healthcheck below target 3001 inside the container.
+      - PORT=3001
+      # Elasticsearch (read by backend/src/services/elasticsearch.ts)
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
       # OpenAI
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
       # JWT
       # No default: a secret written in this public file would let anyone mint tokens.
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set (e.g. openssl rand -hex 32) in .env or the environment}
     depends_on:
       elasticsearch:
         condition: service_healthy
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/v1/health"]
+      # backend/src/index.ts serves GET /health (not under /api).
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -103,66 +83,6 @@ services:
       - vietrag-network
     restart: unless-stopped
 
-  # ==================== MYSQL ====================
-  mysql:
-    image: mysql:8.0
-    container_name: vietrag-mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-vietrag_password}
-      - MYSQL_DATABASE=${MYSQL_DATABASE:-vietrag}
-    volumes:
-      - mysql-data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-vietrag_password}"]
-      interval: 10s
-      timeout: 5s
-      retries: 15
-      start_period: 30s
-    networks:
-      - vietrag-network
-    restart: unless-stopped
-
-  # ==================== REDIS ====================
-  redis:
-    image: redis:7-alpine
-    container_name: vietrag-redis
-    volumes:
-      - redis-data:/data
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    networks:
-      - vietrag-network
-    restart: unless-stopped
-
-  # ==================== MINIO ====================
-  minio:
-    image: minio/minio:latest
-    container_name: vietrag-minio
-    command: server /data --console-address ":9001"
-    environment:
-      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY:-vietrag_admin}
-      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY:-vietrag_secret_key}
-    volumes:
-      - minio-data:/data
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - vietrag-network
-    restart: unless-stopped
-
 # ==================== NETWORKS ====================
 networks:
   vietrag-network:
@@ -171,6 +91,3 @@ networks:
 # ==================== VOLUMES ====================
 volumes:
   es-data:
-  mysql-data:
-  redis-data:
-  minio-data:
