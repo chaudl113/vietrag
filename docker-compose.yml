@@ -58,7 +58,8 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
       # JWT
-      - JWT_SECRET=${JWT_SECRET:-change_me_in_production}
+      # No default: a secret written in this public file would let anyone mint tokens.
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set (e.g. openssl rand -hex 32) in .env or the environment}
     depends_on:
       elasticsearch:
         condition: service_healthy
