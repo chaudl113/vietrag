@@ -11,6 +11,16 @@ fs.mkdirSync(outputDir, { recursive: true })
 
 const pythonBin = path.join(process.cwd(), '.venv', 'bin', 'python3')
 
+// Fixed Python source: the src dir and the template path arrive as argv (sys.argv[1], [2]),
+// never spliced into the shell command line or into the Python code.
+const EXTRACT_DOCX_PY = [
+  'import sys',
+  'sys.path.insert(0, sys.argv[1])',
+  'from services.ppt.document_extractor import extract_docx',
+  'doc = extract_docx(sys.argv[2])',
+  'print(doc.to_markdown()[:3000])',
+].join('\n')
+
 async function extractTemplateContent(template: any): Promise<string> {
   if (!template.file_path || !fs.existsSync(template.file_path)) return ''
   const ext = path.extname(template.file_path).toLowerCase()
@@ -21,14 +31,10 @@ async function extractTemplateContent(template: any): Promise<string> {
 
   if (ext === '.docx') {
     try {
-      const { execSync } = await import('child_process')
-      const result = execSync(
-        `"${pythonBin}" -c "
-import sys; sys.path.insert(0, '${path.join(process.cwd(), 'src')}');
-from services.ppt.document_extractor import extract_docx;
-doc = extract_docx('${template.file_path}');
-print(doc.to_markdown()[:3000])
-"`,
+      const { execFileSync } = await import('child_process')
+      const result = execFileSync(
+        pythonBin,
+        ['-c', EXTRACT_DOCX_PY, path.join(process.cwd(), 'src'), template.file_path],
         { encoding: 'utf-8', timeout: 15000 }
       )
       return result.trim()
