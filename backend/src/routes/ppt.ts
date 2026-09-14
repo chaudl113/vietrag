@@ -3,6 +3,7 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
+import { resolveDownloadPath } from '../utils/downloadPath.js'
 
 const router = Router()
 const uploadDir = path.join(process.cwd(), 'uploads', 'ppt')
@@ -89,7 +90,8 @@ router.post('/from-text', async (req: Request, res: Response) => {
 })
 
 router.get('/download/:filename', (req: Request, res: Response) => {
-  const filePath = path.join(outputDir, req.params.filename)
+  const filePath = resolveDownloadPath(outputDir, req.params.filename)
+  if (!filePath) return res.status(400).json({ error: 'Invalid filename' })
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' })
   setTimeout(() => { try { fs.unlinkSync(filePath) } catch {} }, 3600000)
   return res.download(filePath)

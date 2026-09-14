@@ -2,7 +2,13 @@ import { test, after } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import { setupWorkspace, installStubPython, startServer } from './helpers.js'
+import {
+  setupWorkspace,
+  installStubPython,
+  startServer,
+  assertDownloadIsConfined,
+  assertDownloadServesOutputFile,
+} from './helpers.js'
 
 const workspace = setupWorkspace()
 const stubResult = { file_path: '/stub/out/budget_abc123.xlsx', file_size: 42 }
@@ -44,6 +50,14 @@ test('generate: every allowlisted template keeps the success shape', async () =>
     assert.equal(res.status, 200, template)
     assert.deepEqual(res.body, expectedSuccess)
   }
+})
+
+test('download: filename that escapes outputs/excel is rejected with 400 and nothing is served', async () => {
+  await assertDownloadIsConfined(`${server.baseUrl}/download`, workspace, path.join(workspace, 'outputs', 'excel'))
+})
+
+test('download: generated file is still served', async () => {
+  await assertDownloadServesOutputFile(`${server.baseUrl}/download`, path.join(workspace, 'outputs', 'excel'))
 })
 
 test('from-data: valid request keeps the success shape', async () => {

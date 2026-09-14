@@ -2,7 +2,13 @@ import { test, after, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import { setupWorkspace, installStubPython, startServer } from './helpers.js'
+import {
+  setupWorkspace,
+  installStubPython,
+  startServer,
+  assertDownloadIsConfined,
+  assertDownloadServesOutputFile,
+} from './helpers.js'
 
 const workspace = setupWorkspace()
 const stubResult = {
@@ -125,6 +131,14 @@ test('generate (upload): shell payload in theme/language is rejected with 400 an
     assert.equal(res.status, 400)
     assert.equal(typeof res.body.error, 'string')
   }
+})
+
+test('download: filename that escapes outputs/ppt is rejected with 400 and nothing is served', async () => {
+  await assertDownloadIsConfined(`${server.baseUrl}/download`, workspace, path.join(workspace, 'outputs', 'ppt'))
+})
+
+test('download: generated file is still served', async () => {
+  await assertDownloadServesOutputFile(`${server.baseUrl}/download`, path.join(workspace, 'outputs', 'ppt'))
 })
 
 test('generate (upload): valid request keeps the success shape', async () => {

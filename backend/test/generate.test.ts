@@ -2,7 +2,13 @@ import { test, after } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import { setupWorkspace, installRealPython, startServer } from './helpers.js'
+import {
+  setupWorkspace,
+  installRealPython,
+  startServer,
+  assertDownloadIsConfined,
+  assertDownloadServesOutputFile,
+} from './helpers.js'
 
 const workspace = setupWorkspace()
 installRealPython(workspace)
@@ -58,6 +64,14 @@ async function generateFrom(templateId: number) {
 function extractCalls(): string[] {
   return fs.existsSync(callsLog) ? fs.readFileSync(callsLog, 'utf-8').split('\n').filter(Boolean) : []
 }
+
+test('download: filename that escapes outputs/generated is rejected with 400 and nothing is served', async () => {
+  await assertDownloadIsConfined(`${server.baseUrl}/download`, workspace, path.join(workspace, 'outputs', 'generated'))
+})
+
+test('download: generated file is still served', async () => {
+  await assertDownloadServesOutputFile(`${server.baseUrl}/download`, path.join(workspace, 'outputs', 'generated'))
+})
 
 test('from-template: plain .docx template path reaches the extractor unchanged', async () => {
   const { id, filePath } = insertTemplate('normal.docx')

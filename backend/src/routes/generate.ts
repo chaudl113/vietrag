@@ -4,6 +4,7 @@ import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
 import db from '../services/db.js'
 import { authMiddleware, AuthRequest } from '../middleware/auth.js'
+import { resolveDownloadPath } from '../utils/downloadPath.js'
 
 const router = Router()
 const outputDir = path.join(process.cwd(), 'outputs', 'generated')
@@ -143,7 +144,8 @@ router.get('/history', authMiddleware, (req: AuthRequest, res: Response) => {
 })
 
 router.get('/download/:filename', (req: AuthRequest, res: Response) => {
-  const filePath = path.join(outputDir, req.params.filename)
+  const filePath = resolveDownloadPath(outputDir, req.params.filename)
+  if (!filePath) return res.status(400).json({ error: 'Tên file không hợp lệ' })
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Không tìm thấy file' })
   setTimeout(() => { try { fs.unlinkSync(filePath) } catch {} }, 3600000)
   return res.download(filePath)

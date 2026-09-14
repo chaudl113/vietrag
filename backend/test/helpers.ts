@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -46,6 +47,42 @@ export function installRealPython(workspace: string): void {
   const bin = path.join(workspace, '.venv', 'bin')
   fs.mkdirSync(bin, { recursive: true })
   fs.symlinkSync(real, path.join(bin, 'python3'))
+}
+
+/**
+ * GET `${downloadUrl}/<name>` must only ever serve files directly inside `outputDir`.
+ * Plants files next to the output dir and at the workspace root, then tries to reach them.
+ */
+export async function assertDownloadIsConfined(downloadUrl: string, workspace: string, outputDir: string) {
+  const sibling = path.join(path.dirname(outputDir), 'secret-sibling.txt')
+  const root = path.join(workspace, 'secret-root.txt')
+  fs.writeFileSync(sibling, 'SECRET-SIBLING')
+  fs.writeFileSync(root, 'SECRET-ROOT')
+  const attempts = [
+    '..%2Fsecret-sibling.txt',
+    '..%2F..%2Fsecret-root.txt',
+    '%2E%2E%2F%2E%2E%2Fsecret-root.txt',
+    `..%2F${path.basename(outputDir)}%2F..%2Fsecret-sibling.txt`,
+    encodeURIComponent(root),
+  ]
+  for (const name of attempts) {
+    const res = await fetch(`${downloadUrl}/${name}`)
+    const text = await res.text()
+    assert.ok(!text.includes('SECRET-'), `served a file outside outputDir for ${name}`)
+    assert.equal(res.status, 400, name)
+    assert.equal(typeof JSON.parse(text).error, 'string', name)
+  }
+}
+
+/** A file inside `outputDir` is still downloadable, and a missing one is still 404. */
+export async function assertDownloadServesOutputFile(downloadUrl: string, outputDir: string) {
+  fs.writeFileSync(path.join(outputDir, 'result_ok123.bin'), 'OUTPUT-BYTES')
+  const ok = await fetch(`${downloadUrl}/result_ok123.bin`)
+  assert.equal(ok.status, 200)
+  assert.equal(await ok.text(), 'OUTPUT-BYTES')
+  const missing = await fetch(`${downloadUrl}/does_not_exist.bin`)
+  assert.equal(missing.status, 404)
+  assert.equal(typeof (await missing.json()).error, 'string')
 }
 
 /** Mount a router the same way src/index.ts does and listen on an ephemeral port. */
